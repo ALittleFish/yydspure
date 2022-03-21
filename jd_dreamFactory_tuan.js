@@ -17,7 +17,6 @@ const JD_API_HOST = 'https://m.jingxi.com';
 const notify = $.isNode() ? require('./sendNotify') : '';
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const openTuanCK = $.isNode() ? (process.env.OPEN_DREAMFACTORY_TUAN ? process.env.OPEN_DREAMFACTORY_TUAN : '1'):'1';
-const helpFlag = false;//是否参考作者团
 let tuanActiveId = ``;
 let cookiesArr = [], cookie = '', message = '';
 $.tuanIds = [];
@@ -39,10 +38,6 @@ if ($.isNode()) {
   await requestAlgo();
   await getTuanActiveId();
   if(!tuanActiveId){console.log(`未能获取到有效的团活动ID`);return ;}
-  //let nowTime = getCurrDate();
-  // let jdFactoryTime = $.getdata('jdFactoryTime');
-  // if (!jdFactoryTime || nowTime !== jdFactoryTime) {$.setdata(nowTime, 'jdFactoryTime');$.setdata({}, 'jdFactoryHelpList');}
-  // $.jdFactoryHelpList = $.getdata('jdFactoryHelpList');
   if (!cookiesArr[0]) {
     $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', {"open-url": "https://bean.m.jd.com/bean/signIndex.action"});
     return;
@@ -84,10 +79,6 @@ if ($.isNode()) {
       $.index = i + 1;
       cookie = cookiesArr[i];
       $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
-      // if($.jdFactoryHelpList[$.UserName]){
-      //   console.log(`${$.UserName},参团次数已用完`)
-      //   continue;
-      // }
       $.isLogin = true;
       $.canHelp = true;//能否参团
       await TotalBean();
@@ -103,29 +94,6 @@ if ($.isNode()) {
           await $.wait(2000);
           if($.tuanMax){$.tuanIds.shift();j--;}
         }
-      }
-    }
-  }
-  let res = [];
-  if(helpFlag){
-    res = await getAuthorShareCode('');
-    if(!res){
-      res = [];
-    }
-    if(res.length === 0){
-      return ;
-    }
-    console.log(`\n===============开始助力作者团===================`);
-    let thisTuanID = getRandomArrayElements(res, 1)[0];
-    $.tuanMax = false;
-    for (let i = 0; i < cookiesArr.length && !$.tuanMax; i++) {
-      if(openTuanCKList.includes((i+1).toString())){
-        $.index = i + 1;
-        cookie = cookiesArr[i];
-        $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
-        console.log(`账号${$.UserName} 去参加作者团： ${thisTuanID}`);
-        await JoinTuan(thisTuanID);
-        await $.wait(2000);
       }
     }
   }
@@ -168,44 +136,6 @@ async function getTuanActiveId() {
   })
 }
 
-
-function getAuthorShareCode(url) {
-  return new Promise(async resolve => {
-    const options = {
-      "url": `${url}?${new Date()}`,
-      "timeout": 10000,
-      "headers": {
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1 Edg/87.0.4280.88"
-      }
-    };
-    if ($.isNode() && process.env.TG_PROXY_HOST && process.env.TG_PROXY_PORT) {
-      const tunnel = require("tunnel");
-      const agent = {
-        https: tunnel.httpsOverHttp({
-          proxy: {
-            host: process.env.TG_PROXY_HOST,
-            port: process.env.TG_PROXY_PORT * 1
-          }
-        })
-      };
-      Object.assign(options, { agent })
-    }
-    $.get(options, async (err, resp, data) => {
-      try {
-        if (err) {
-        } else {
-          if (data) data = JSON.parse(data)
-        }
-      } catch (e) {
-        // $.logErr(e, resp)
-      } finally {
-        resolve(data || []);
-      }
-    });
-    await $.wait(10000);
-    resolve();
-  })
-}
 function userInfo() {
   return new Promise(async resolve => {
     $.get(taskurl('userinfo/GetUserInfo', `pin=&sharePin=&shareType=&materialTuanPin=&materialTuanId=&source=`, '_time,materialTuanId,materialTuanPin,pin,sharePin,shareType,source,zone'), async (err, resp, data) => {

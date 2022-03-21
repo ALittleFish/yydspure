@@ -51,7 +51,6 @@ if ($.isNode()) {
     }
 })().catch((e) => { $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '') }).finally(() => { $.done(); })
 
-
 function wheelsLottery() {
     let opt = {
         url: `https://api.m.jd.com/?functionId=wheelsLottery&body={%22linkId%22:%22P7adoiWENsib7iNueImqfA%22}&t=${new Date().getTime()}&appid=activities_platform`,

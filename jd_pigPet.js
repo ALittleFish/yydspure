@@ -47,14 +47,6 @@ if ($.isNode()) {
   }
   if (process.env.PIGPETSHARECODE) {
     shareId = process.env.PIGPETSHARECODE
-  } else {
-    let res = await getAuthorShareCode('')
-    if (!res) {
-      $.http.get({url: ''}).then((resp) => {}).catch((e) => console.log('刷新CDN异常', e));
-      await $.wait(2000)
-      res = await getAuthorShareCode('')
-    }
-    if (res && res.length) shareId = res[Math.floor((Math.random() * res.length))]
   }
   for (let i = 0; i < cookiesArr.length; i++) {
     if (cookiesArr[i]) {
@@ -75,13 +67,6 @@ if ($.isNode()) {
       await jdPigPet();
     }
   }
-  let res2 = await getAuthorShareCode('https://raw.githubusercontent.com/Aaron-lv/updateTeam/master/shareCodes/pig.json')
-  if (!res2) {
-    $.http.get({url: 'https://purge.jsdelivr.net/gh/Aaron-lv/updateTeam@master/shareCodes/pig.json'}).then((resp) => {}).catch((e) => console.log('刷新CDN异常', e));
-    await $.wait(2000)
-    res2 = await getAuthorShareCode('https://cdn.jsdelivr.net/gh/Aaron-lv/updateTeam@master/shareCodes/pig.json')
-  }
-  $.shareCodes = [...new Set([...$.shareCodes, ...(res2 || [])])]
   console.log($.shareCodes)
   console.log(`\n======开始大转盘助力======\n`);
   for (let j = 0; j < cookiesArr.length; j++) {
@@ -91,7 +76,6 @@ if ($.isNode()) {
       for (let item of $.shareCodes) {
         await pigPetLotteryHelpFriend(item)
         await $.wait(1000)
-        // if (!$.canRun) break
       }
     }
   }
@@ -161,18 +145,6 @@ function pigPetSignOne() {
         } else {
           if (data) {
             console.log('签到结果', data)
-            // data = JSON.parse(data);
-            // if (data.resultCode === 0) {
-            //   if (data.resultData.resultCode === 0) {
-            //     if (data.resultData.resultData) {
-            //       console.log(`当前大转盘剩余免费抽奖次数：：${data.resultData.resultData.currentCount}`);
-            //       $.sign = data.resultData.resultData.sign;
-            //       $.no = data.resultData.resultData.today;
-            //     }
-            //   } else {
-            //     console.log(`查询签到情况异常：${JSON.stringify(data)}`)
-            //   }
-            // }
           } else {
             console.log(`京东服务器返回空数据`)
           }
@@ -879,39 +851,6 @@ function finishReadMission(missionId, readTime) {
         resolve();
       }
     })
-  })
-}
-
-function getAuthorShareCode(url) {
-  return new Promise(async resolve => {
-    const options = {
-      url: `${url}?${new Date()}`, "timeout": 10000, headers: {
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1 Edg/87.0.4280.88"
-      }
-    };
-    if ($.isNode() && process.env.TG_PROXY_HOST && process.env.TG_PROXY_PORT) {
-      const tunnel = require("tunnel");
-      const agent = {
-        https: tunnel.httpsOverHttp({
-          proxy: {
-            host: process.env.TG_PROXY_HOST,
-            port: process.env.TG_PROXY_PORT * 1
-          }
-        })
-      }
-      Object.assign(options, { agent })
-    }
-    $.get(options, async (err, resp, data) => {
-      try {
-        resolve(JSON.parse(data))
-      } catch (e) {
-        // $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
-    })
-    await $.wait(10000)
-    resolve();
   })
 }
 
